@@ -1,6 +1,4 @@
-/* ===========================
-   Reset & Base
-=========================== */
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -31,9 +29,6 @@ body {
   min-height: 100vh;
 }
 
-/* ===========================
-   Header
-=========================== */
 header {
   background: var(--primary);
   color: white;
@@ -66,9 +61,6 @@ header h1 {
   margin-top: 2px;
 }
 
-/* ===========================
-   Main Layout
-=========================== */
 main {
   max-width: 860px;
   margin: 32px auto;
@@ -78,9 +70,6 @@ main {
   gap: 24px;
 }
 
-/* ===========================
-   Cards
-=========================== */
 .card {
   background: var(--white);
   border-radius: var(--radius);
@@ -99,9 +88,6 @@ main {
   border-bottom: 2px solid var(--primary-light);
 }
 
-/* ===========================
-   Form
-=========================== */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -136,9 +122,6 @@ input::placeholder {
   color: #b0b7c3;
 }
 
-/* ===========================
-   Button
-=========================== */
 #btn-cadastrar {
   display: flex;
   align-items: center;
@@ -173,9 +156,6 @@ input::placeholder {
   line-height: 1;
 }
 
-/* ===========================
-   Feedback
-=========================== */
 .feedback {
   margin-top: 12px;
   padding: 10px 14px;
@@ -198,9 +178,6 @@ input::placeholder {
   color: var(--error);
 }
 
-/* ===========================
-   Table
-=========================== */
 .table-wrapper {
   overflow-x: auto;
 }
@@ -257,9 +234,78 @@ tbody td:first-child {
   font-style: italic;
 }
 
-/* ===========================
-   Responsivo
-=========================== */
+.retirada-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.form-group--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.form-group--inline label {
+  white-space: nowrap;
+}
+
+.retirada-toolbar input {
+  width: 110px;
+}
+
+.hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-baixar,
+.btn-excluir {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-baixar {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-baixar:hover {
+  background: #d4e1fb;
+}
+
+.btn-excluir {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.btn-excluir:hover {
+  background: #fbcfcf;
+}
+
+.btn-baixar:active,
+.btn-excluir:active {
+  transform: scale(0.96);
+}
+
 @media (max-width: 600px) {
   .card {
     padding: 20px 16px;
@@ -271,5 +317,10 @@ tbody td:first-child {
 
   header h1 {
     font-size: 1.2rem;
+  }
+
+  .form-group--inline {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
