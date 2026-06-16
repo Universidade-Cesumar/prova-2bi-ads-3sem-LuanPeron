@@ -78,7 +78,6 @@ async function carregarMateriais() {
   }
 }
 
-
 async function cadastrarMaterial() {
   const nome = inputNome.value.trim();
   const quantidade = inputQuantidade.value.trim();
@@ -94,7 +93,6 @@ async function cadastrarMaterial() {
     inputQuantidade.focus();
     return;
   }
-
 
   btnCadastrar.disabled = true;
   btnCadastrar.textContent = "Cadastrando...";
@@ -115,13 +113,11 @@ async function cadastrarMaterial() {
       throw new Error(`Erro HTTP: ${response.status}`);
     }
 
-  
     inputNome.value = "";
     inputQuantidade.value = "";
 
     mostrarFeedback("Material cadastrado com sucesso! ✔", "success");
 
-  
     await carregarMateriais();
 
   } catch (error) {
@@ -133,3 +129,133 @@ async function cadastrarMaterial() {
   }
 }
 
+btnCadastrar.addEventListener("click", cadastrarMaterial);
+
+inputNome.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") inputQuantidade.focus();
+});
+
+inputQuantidade.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") cadastrarMaterial();
+});
+
+function validarRetirada(estoqueAtual, quantidadeRetirada) {
+  if (typeof quantidadeRetirada !== "number" || Number.isNaN(quantidadeRetirada)) {
+    return false;
+  }
+
+  if (quantidadeRetirada <= 0) {
+    return false;
+  }
+
+  if (quantidadeRetirada > estoqueAtual) {
+    return false;
+  }
+
+  return true;
+}
+
+function testarValidarRetirada() {
+  const testes = [
+    { estoque: 10, retirada: 5, esperado: true,  desc: "retirada válida menor que o estoque" },
+    { estoque: 5,  retirada: 10, esperado: false, desc: "retirada maior que o estoque" },
+    { estoque: 5,  retirada: -3, esperado: false, desc: "retirada negativa" },
+    { estoque: 5,  retirada: 0,  esperado: false, desc: "retirada zero" },
+    { estoque: 5,  retirada: 5,  esperado: true,  desc: "retirada igual ao estoque total" },
+    { estoque: 5,  retirada: NaN, esperado: false, desc: "retirada não numérica" },
+  ];
+
+  testes.forEach((teste) => {
+    const resultado = validarRetirada(teste.estoque, teste.retirada);
+    const passou = resultado === teste.esperado;
+    console.assert(passou, `[validarRetirada] FALHOU: ${teste.desc} (estoque=${teste.estoque}, retirada=${teste.retirada})`);
+    if (passou) {
+      console.log(`[validarRetirada] OK: ${teste.desc}`);
+    }
+  });
+}
+
+async function baixarEstoque(id, estoqueAtual, nome) {
+  const quantidadeRetirada = Number(inputRetirada.value);
+
+  if (!validarRetirada(estoqueAtual, quantidadeRetirada)) {
+    mostrarFeedback(
+      `Quantidade inválida. Informe um valor entre 1 e ${estoqueAtual} para retirar de "${nome}".`,
+      "error"
+    );
+    inputRetirada.focus();
+    return;
+  }
+
+  const novoEstoque = estoqueAtual - quantidadeRetirada;
+
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: nome,
+        quantidade: novoEstoque,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+
+    inputRetirada.value = "";
+    mostrarFeedback(`Baixa de ${quantidadeRetirada} un. em "${nome}" realizada com sucesso! ✔`, "success");
+
+    await carregarMateriais();
+
+  } catch (error) {
+    console.error("Erro ao retirar material:", error);
+    mostrarFeedback("Erro ao retirar material. Verifique a conexão.", "error");
+  }
+}
+
+async function excluirMaterial(id, nome) {
+  const confirmar = confirm(`Tem certeza que deseja excluir "${nome}"? Essa ação não pode ser desfeita.`);
+  if (!confirmar) return;
+
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+
+    mostrarFeedback(`Material "${nome}" excluído com sucesso! ✔`, "success");
+
+    await carregarMateriais();
+
+  } catch (error) {
+    console.error("Erro ao excluir material:", error);
+    mostrarFeedback("Erro ao excluir material. Verifique a conexão.", "error");
+  }
+}
+
+listaMateriais.addEventListener("click", (e) => {
+  const btnBaixar = e.target.closest(".btn-baixar");
+  if (btnBaixar) {
+    const id = btnBaixar.dataset.id;
+    const estoqueAtual = Number(btnBaixar.dataset.estoque);
+    const nome = btnBaixar.dataset.nome;
+    baixarEstoque(id, estoqueAtual, nome);
+    return;
+  }
+
+  const btnExcluir = e.target.closest(".btn-excluir");
+  if (btnExcluir) {
+    const id = btnExcluir.dataset.id;
+    const nome = btnExcluir.dataset.nome;
+    excluirMaterial(id, nome);
+  }
+});
+
+testarValidarRetirada();
+carregarMateriais();
