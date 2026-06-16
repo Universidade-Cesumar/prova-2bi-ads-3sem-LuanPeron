@@ -18,56 +18,6 @@
     </div>
   </header>
 
-  <main>
-
-    <section class="card form-card">
-      <h2>Cadastrar Material</h2>
-      <div class="form-group">
-        <label for="input-nome">Nome do Material</label>
-        <input
-          type="text"
-          id="input-nome"
-          placeholder="Ex: Papel A4, Caneta Azul..."
-          autocomplete="off"
-        />
-      </div>
-      <div class="form-group">
-        <label for="input-quantidade">Quantidade</label>
-        <input
-          type="number"
-          id="input-quantidade"
-          placeholder="0"
-          min="0"
-        />
-      </div>
-      <button id="btn-cadastrar">
-        <span class="btn-icon">＋</span> Cadastrar Material
-      </button>
-      <div id="msg-feedback" class="feedback hidden"></div>
-    </section>
-
-    <section class="card table-card">
-      <h2>Materiais Cadastrados</h2>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nome</th>
-              <th>Quantidade</th>
-            </tr>
-          </thead>
-          <tbody id="lista-materiais">
-            <tr class="loading-row">
-              <td colspan="3">Carregando materiais...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </main>
-
   <script src="main.js"></script>
 </body>
 </html>
