@@ -1,4 +1,3 @@
-
 const API_URL = "https://6a2897384e1e783349a5ac26.mockapi.io/Almoxarifado";
 
 const inputNome = document.getElementById("input-nome");
@@ -7,6 +6,11 @@ const btnCadastrar = document.getElementById("btn-cadastrar");
 const listaMateriais = document.getElementById("lista-materiais");
 const msgFeedback = document.getElementById("msg-feedback");
 const inputRetirada = document.getElementById("input-retirada");
+const inputBusca = document.getElementById("input-busca"); // SPRINT 3
+const totalItens = document.getElementById("total-itens"); // SPRINT 3
+
+// SPRINT 3: cache dos materiais para filtro local (sem nova requisição)
+let todosMateriais = [];
 
 
 function mostrarFeedback(mensagem, tipo = "success") {
@@ -15,6 +19,47 @@ function mostrarFeedback(mensagem, tipo = "success") {
   setTimeout(() => {
     msgFeedback.className = "feedback hidden";
   }, 3000);
+}
+
+
+// SPRINT 3: renderiza a lista (recebe array já filtrado ou completo)
+function renderizarMateriais(materiais) {
+  // Atualiza o total de itens
+  totalItens.textContent = materiais.length;
+
+  if (materiais.length === 0) {
+    listaMateriais.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="4">Nenhum material encontrado.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  listaMateriais.innerHTML = materiais
+    .map(
+      (material, index) => `
+      <tr class="${material.quantidade < 10 ? "estoque-critico" : ""}">
+        <td>${index + 1}</td>
+        <td>${material.nome}</td>
+        <td>${material.quantidade}</td>
+        <td class="actions-cell">
+          <button
+            class="btn-baixar"
+            data-id="${material.id}"
+            data-estoque="${material.quantidade}"
+            data-nome="${material.nome}"
+          >⬇ Baixar</button>
+          <button
+            class="btn-excluir"
+            data-id="${material.id}"
+            data-nome="${material.nome}"
+          >🗑 Excluir</button>
+        </td>
+      </tr>
+    `
+    )
+    .join("");
 }
 
 
@@ -32,51 +77,34 @@ async function carregarMateriais() {
       throw new Error(`Erro HTTP: ${response.status}`);
     }
 
-    const materiais = await response.json();
+    todosMateriais = await response.json(); // SPRINT 3: salva no cache
 
-    if (materiais.length === 0) {
-      listaMateriais.innerHTML = `
-        <tr class="empty-row">
-          <td colspan="4">Nenhum material cadastrado ainda.</td>
-        </tr>
-      `;
-      return;
-    }
-
-    listaMateriais.innerHTML = materiais
-      .map(
-        (material, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${material.nome}</td>
-          <td>${material.quantidade}</td>
-          <td class="actions-cell">
-            <button
-              class="btn-baixar"
-              data-id="${material.id}"
-              data-estoque="${material.quantidade}"
-              data-nome="${material.nome}"
-            >⬇ Baixar</button>
-            <button
-              class="btn-excluir"
-              data-id="${material.id}"
-              data-nome="${material.nome}"
-            >🗑 Excluir</button>
-          </td>
-        </tr>
-      `
-      )
-      .join("");
+    // Aplica filtro atual ao carregar (mantém busca ativa se houver)
+    filtrarMateriais();
 
   } catch (error) {
     console.error("Erro ao carregar materiais:", error);
     listaMateriais.innerHTML = `
       <tr class="empty-row">
-        <td colspan="4">Erro ao carregar materiais. Tente novamente.</td>
+        <td colspan="4">Erro ao carregar materiais. Verifique sua conexão e tente novamente.</td>
       </tr>
     `;
+    totalItens.textContent = 0; // SPRINT 3
   }
 }
+
+
+// SPRINT 3: filtra localmente com base no input-busca
+function filtrarMateriais() {
+  const termo = inputBusca ? inputBusca.value.trim().toLowerCase() : "";
+
+  const materiaisFiltrados = todosMateriais.filter((m) =>
+    m.nome.toLowerCase().includes(termo)
+  );
+
+  renderizarMateriais(materiaisFiltrados);
+}
+
 
 async function cadastrarMaterial() {
   const nome = inputNome.value.trim();
@@ -139,6 +167,12 @@ inputQuantidade.addEventListener("keydown", (e) => {
   if (e.key === "Enter") cadastrarMaterial();
 });
 
+// SPRINT 3: listener do campo de busca
+if (inputBusca) {
+  inputBusca.addEventListener("input", filtrarMateriais);
+}
+
+
 function validarRetirada(estoqueAtual, quantidadeRetirada) {
   if (typeof quantidadeRetirada !== "number" || Number.isNaN(quantidadeRetirada)) {
     return false;
@@ -157,12 +191,12 @@ function validarRetirada(estoqueAtual, quantidadeRetirada) {
 
 function testarValidarRetirada() {
   const testes = [
-    { estoque: 10, retirada: 5, esperado: true,  desc: "retirada válida menor que o estoque" },
-    { estoque: 5,  retirada: 10, esperado: false, desc: "retirada maior que o estoque" },
-    { estoque: 5,  retirada: -3, esperado: false, desc: "retirada negativa" },
-    { estoque: 5,  retirada: 0,  esperado: false, desc: "retirada zero" },
-    { estoque: 5,  retirada: 5,  esperado: true,  desc: "retirada igual ao estoque total" },
-    { estoque: 5,  retirada: NaN, esperado: false, desc: "retirada não numérica" },
+    { estoque: 10, retirada: 5,   esperado: true,  desc: "retirada válida menor que o estoque" },
+    { estoque: 5,  retirada: 10,  esperado: false,  desc: "retirada maior que o estoque" },
+    { estoque: 5,  retirada: -3,  esperado: false,  desc: "retirada negativa" },
+    { estoque: 5,  retirada: 0,   esperado: false,  desc: "retirada zero" },
+    { estoque: 5,  retirada: 5,   esperado: true,  desc: "retirada igual ao estoque total" },
+    { estoque: 5,  retirada: NaN, esperado: false,  desc: "retirada não numérica" },
   ];
 
   testes.forEach((teste) => {
